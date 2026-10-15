@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Work Order ELBAN</title>
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f1f5f9;--card:#fff;--tx:#1e293b}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+body{font-family:'Inter',system-ui,sans-serif;background:#f1f5f9;color:#1e293b;overflow-x:hidden;min-height:100%}
+.hd,.row{display:flex;align-items:center;gap:12px;padding:12px 14px}
+.hd{background:#0f172a;color:#fff;font-size:12px;letter-spacing:.05em;text-transform:uppercase;font-weight:600}
+.row{border-bottom:1px solid #e2e8f0;font-size:14px}
+.c-n{flex:none;width:32px;color:#64748b;font-weight:600}.hd .c-n{color:#fff}
+.c-c{flex:none;width:24px}.c-k{flex:1;min-width:0}.c-j{flex:none;width:150px}.c-s{flex:none;width:90px}.c-d{flex:none;width:145px}.c-w{flex:none;width:170px}
+input:not([type=checkbox]),select{border:1px solid #94a3b8!important;border-radius:8px;box-shadow:0 1px 2px rgba(15,23,42,.06)}
+input:not([type=checkbox]){background-color:#fff!important;color:#1e293b}
+.cb{width:20px;height:20px;cursor:pointer;accent-color:#2563eb}
+.row.done .c-k{color:#94a3b8;text-decoration:line-through}
+@media (max-width:700px){.hd{display:none}.row{flex-wrap:wrap;gap:8px 10px}.c-k{flex:1 1 calc(100% - 80px)}.c-j,.c-s,.c-d,.c-w{width:auto}.c-d,.c-w{flex:1 1 140px}}
+.pdf-a4{display:flex;flex-direction:column;box-sizing:border-box;width:210mm;max-width:100%;min-height:297mm;padding:15mm;margin:0 auto 20px;background:#fff;color:#0f172a;box-shadow:0 4px 6px -1px rgba(0,0,0,.1)}
+.pdf-export-mode .pdf-a4{width:210mm!important;max-width:none!important;height:297mm!important;min-height:297mm!important;padding:12mm!important;margin:0!important;box-shadow:none!important;overflow:hidden}
+.pdf-export-mode .pdf-a4:last-child{height:296mm!important;min-height:296mm!important}
+.pdf-table{width:100%;border-collapse:collapse}
+.pdf-table th,.pdf-table td{border:1px solid #cbd5e1;padding:7px 8px;font-size:9pt;text-align:left;vertical-align:middle}
+.pdf-table tbody tr:nth-child(even){background:#f8fafc}
+.pdf-table th{background:#0f172a;color:#fff;font-weight:600;text-transform:uppercase}
+.pdf-table tr{break-inside:avoid}
+.h3{font-size:10pt;font-weight:700;text-transform:uppercase;border-left:3px solid #2563eb;padding-left:6px;margin:12px 0 6px}
+@media (max-width:768px){.pdf-a4{padding:1rem;min-height:auto}}
+@media print{
+ body{background:#fff!important}.no-print{display:none!important}
+ .pdf-a4{box-shadow:none;margin:0;width:100%;max-width:none;padding:0;min-height:0;page-break-after:always}
+ .pdf-a4:last-child{page-break-after:auto}
+ .pdf-table th{background:#0f172a!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ #view-doc{display:block!important}#view-data{display:none!important}
+}
+</style>
+</head>
+<body class="flex flex-col">
+
+<header class="bg-slate-900 text-white shadow-md no-print sticky top-0 z-50" style="top:env(safe-area-inset-top,0px)">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+    <div class="flex items-center space-x-3">
+      <img src="logodishub.png" alt="Logo Dishub" class="h-11 w-11 rounded-lg bg-white shadow-md object-contain p-1">
+      <div>
+        <h1 class="text-lg font-bold leading-none">WORK ORDER ELBAN</h1>
+        <p class="text-xs text-slate-400 mt-1">Elektronika Bandara</p>
+        <p class="text-[10px] text-slate-400 mt-1">Kantor BLU UPBU Kelas I Haluoleo Kendari</p>
+      </div>
+    </div>
+    <nav class="flex items-center gap-1 sm:gap-2">
+      <button id="t-data" onclick="tab('data')" class="px-3 py-2 rounded-md text-sm font-medium transition">📋 Data Work Order</button>
+      <button id="t-doc" onclick="tab('doc')" class="px-3 py-2 rounded-md text-sm font-medium transition">📄 Dokumen WO</button>
+    </nav>
+  </div>
+</header>
+
+<main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+<section id="view-data" class="space-y-4">
+  <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-4 no-print">
+    <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+        <input id="q" type="text" oninput="render()" placeholder="Cari kegiatan atau petugas..." class="w-full sm:w-64 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <select id="f" onchange="render()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"></select>
+      </div>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <div><label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Awalan No. WO</label><input id="wono" oninput="render();doc()" value="WO/ELBAN" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+      <div><label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Tanggal Selesai Kegiatan</label><input id="tgl" type="date" oninput="render();doc()" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+      <div><label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Tanggal Cetak</label><input id="tglc" type="date" oninput="doc()" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+      <div><label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Lokasi / Unit</label><input id="lok" oninput="doc()" value="" placeholder="Isi lokasi / unit..." class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+    </div>
+  </div>
+  <div id="list" class="space-y-4"></div>
+</section>
+
+<section id="view-doc" class="hidden">
+  <div class="no-print flex justify-end mb-3"><button id="pdfbtn" onclick="exportPDF()" class="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white rounded-lg text-sm font-medium shadow-sm">📄 Export PDF</button></div>
+  <div class="overflow-x-auto"><div id="docs"></div></div>
+</section>
+</main>
+
+<script>
+const P=["Muh Nisyar","Raditya Rizaldi","Nabila Suciningrum"];
+const M="Perawatan",C="Performance Check";
+const A="Melakukan perawatan dan pemeliharaan ",B="Melaksanakan performance check ";
+const W=[0,0,1,1,2,0,1,2,0,0,1,1,2,2,2,2,2,0,1,0,1,2,0,0,1,1,2,0,1,2];
+const T=[
+["Xray Smith Detection 100100T SCP 1",M,0],["Xray Leidos SCP 1",M,0],
+["Xray Smith Detection HS 6040 2 IS SCP 2 Line 1",M,0],["Xray Smith Detection HS 6040 2 IS SCP 2 Line 2",M,0],
+["Xray Smith Detection HS 145180 Cargo",M,0],["WTMD CEIA Line",M,1],
+["WTMD Garret PD6500i di SCP 2",M,1],["WTMD Garret PD6500i di Exit Airside",M,1],["Server CCTV",M,1],
+["CCTV lantai 1 area keberangkatan",M,2],["CCTV lantai 1 area kedatangan",M,2],
+["CCTV lantai 1 area dropzone dan sekitarnya",M,2],["CCTV lantai 2 area pujasera, gate 1 & 2",M,2],
+["CCTV lantai 2 area gate 3 & 4",M,2],["CCTV area rooftop, access route dan portal",M,2],
+["FIDS kedatangan",M,2],["FIDS gate",M,2],["Monitor operator CCTV",M,2],["Monitor check-in counter",M,2],
+["Server CCTV Bosch 32 channel",C,1],["Server CCTV Televideo 16 channel",C,1],["Server CCTV Vivotek 16 channel",C,1],
+["Xray Smith Detection 100100T SCP 1",C,0],["Xray Leidos SCP 1",C,0],
+["Xray Smith Detection HS 6040 2 IS SCP 2 Line 1",C,0],["Xray Smith Detection HS 6040 2 IS SCP 2 Line 2",C,0],
+["Xray Smith Detection HS 145180 Cargo",C,0],["WTMD CEIA Line 1 dan 2",C,1],
+["WTMD Garret PD6500i SCP 2 Line 1 dan 2",C,1],["WTMD Garret PD6500i Exit Airside",C,1]
+].map((t,i)=>({id:i,name:(t[1]==M?A:B)+t[0],type:t[1],who:W[i],done:false,date:""}));
+const $=id=>document.getElementById(id);
+const today=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+$("tgl").value=today();$("tglc").value=today();
+$("f").innerHTML='<option value="-1">Semua Petugas</option>'+P.map((p,i)=>`<option value="${i}">${p}</option>`).join("");
+const fmtDate=v=>v?new Date(v+"T00:00").toLocaleDateString("id-ID",{day:"2-digit",month:"long",year:"numeric"}):"-";
+const fmtActivityDateTime=v=>v?`${fmtDate(v.slice(0,10))} ${v.slice(11,16)}`:"-";
+const tglID=(id="tgl")=>fmtDate($(id).value);
+function tab(n){
+  $("view-data").classList.toggle("hidden",n!=="data");$("view-doc").classList.toggle("hidden",n!=="doc");
+  $("t-data").className="px-3 py-2 rounded-md text-sm font-medium transition "+(n==="data"?"bg-slate-800 text-white":"text-slate-300 hover:bg-slate-800 hover:text-white");
+  $("t-doc").className="px-3 py-2 rounded-md text-sm font-medium transition "+(n==="doc"?"bg-slate-800 text-white":"text-slate-300 hover:bg-slate-800 hover:text-white");
+  if(n==="doc")doc();
+}
+function cetak(){tab("doc");setTimeout(()=>window.print(),150)}
+const esc=s=>String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");
+const draft=["","",""];let nid=1000;
+const endTimes=["","",""];
+const RM=["I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII"];
+const woNo=pi=>{const v=$("tgl").value,d=v?new Date(v+"T00:00"):new Date();return ($("wono").value.trim()||"WO/ELBAN")+"/"+RM[d.getMonth()]+"/"+d.getFullYear()+"/-"+(pi+1)};
+function setEndTime(pi,value){endTimes[pi]=value;doc()}
+function setActivityDate(i,value){const t=T.find(x=>x.id===i);if(t){t.date=value;doc()}}
+function tog(i){const t=T.find(x=>x.id===i);t.done=!t.done;render()}
+function mv(i,v){T.find(x=>x.id===i).who=+v;render()}
+function add(pi){const v=(draft[pi]||"").trim();if(!v)return;T.push({id:nid++,name:v,type:"Lainnya",who:pi,done:false,date:"",custom:true});draft[pi]="";render()}
+function del(i){const k=T.findIndex(x=>x.id===i);if(k>-1)T.splice(k,1);render()}
+function render(){
+  const q=$("q").value.toLowerCase(),f=+$("f").value;let h="";
+  P.forEach((p,pi)=>{
+    if(f!==-1&&f!==pi)return;
+    const all=T.filter(t=>t.who===pi);
+    const rows=all.filter(t=>!q||(t.name+" "+p).toLowerCase().includes(q));
+    if(!rows.length&&q)return;
+    h+=`<div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+    <div class="px-4 py-3 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+      <div><div class="font-bold text-base">${p} <span class="ml-2 align-middle text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-900 text-white">${woNo(pi)}</span></div><div class="text-xs text-slate-500">${all.length} kegiatan · selesai ${all.filter(t=>t.done).length}</div></div>
+      <label class="flex items-center gap-2 text-xs font-semibold text-slate-700">Jam Selesai Kegiatan<input type="time" value="${endTimes[pi]}" oninput="setEndTime(${pi},this.value)" class="px-2 py-1.5 text-sm font-normal"></label>
+    </div>
+    <div class="hd"><span class="c-n">No</span><span class="c-c">Cek</span><span class="c-k">Kegiatan</span><span class="c-j">Jenis</span><span class="c-s">Status</span><span class="c-d">Tgl Pelaksanaan</span><span class="c-w">Petugas</span></div>
+    ${rows.map((t,k)=>`<div class="row ${t.done?"done":""}"><span class="c-n">${k+1}</span><span class="c-c"><input type="checkbox" class="cb" ${t.done?"checked":""} onchange="tog(${t.id})"></span><span class="c-k font-medium">${esc(t.name)}</span>
+    <span class="c-j"><span class="inline-block text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">${t.type}</span></span>
+    <span class="c-s"><button onclick="tog(${t.id})" class="text-xs font-bold px-3 py-1 rounded-full ${t.done?"bg-emerald-100 text-emerald-700":"bg-amber-100 text-amber-700"}">${t.done?"Selesai":"Belum"}</button></span>
+    <span class="c-d"><input type="datetime-local" value="${esc(t.date||"")}" onchange="setActivityDate(${t.id},this.value)" aria-label="Tanggal dan jam pelaksanaan kegiatan" class="w-full px-2 py-1 text-xs"></span>
+    <span class="c-w"><select onchange="mv(${t.id},this.value)" class="w-full border border-slate-300 rounded-lg px-2 py-1 text-xs bg-white">${P.map((n,j)=>`<option value="${j}" ${j===t.who?"selected":""}>${n}</option>`).join("")}</select>${t.custom?`<button onclick="del(${t.id})" class="mt-1 text-xs text-red-600 hover:underline">Hapus</button>`:""}</span></div>`).join("")}
+    <div class="flex flex-col sm:flex-row gap-2 p-3 bg-slate-50 border-t border-slate-200"><input type="text" placeholder="Tambah kegiatan lainnya..." value="${esc(draft[pi])}" oninput="draft[${pi}]=this.value" onkeydown="if(event.key==='Enter')add(${pi})" class="flex-1 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"><button onclick="add(${pi})" class="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium shadow-sm">+ Tambah Kegiatan</button></div>
+    </div>`;
+  });
+  $("list").innerHTML=h||'<div class="bg-white rounded-xl border border-slate-200 p-8 text-center text-slate-500">Tidak ada kegiatan yang cocok.</div>';
+}
+function doc(){
+  const no=$("wono").value||"-",lok=$("lok").value||"-",tg=tglID();
+  $("docs").innerHTML=P.map((p,pi)=>{
+    const r=T.filter(t=>t.who===pi);
+    return `<div class="pdf-a4">
+    <div style="background:#0f172a;color:#fff;padding:12px 14px;border-radius:8px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:12px;-webkit-print-color-adjust:exact;print-color-adjust:exact">
+      <div style="display:flex;align-items:center;gap:12px">
+        <img src="logodishub.png" alt="Logo Dishub" style="width:56px;height:56px;background:#fff;border-radius:8px;padding:4px;object-fit:contain;display:block">
+        <div><h1 style="font-size:14pt;font-weight:700;text-transform:uppercase;margin:0;color:#fff">Surat Perintah Kerja (Work Order)</h1>
+        <p style="font-size:8.5pt;color:#94a3b8;margin:0">Elektronika Bandara</p>
+        <p style="font-size:8pt;font-weight:700;color:#94a3b8;margin:2px 0 0">Kantor BLU UPBU Kelas I Haluoleo Kendari</p></div>
+      </div>
+      <div style="text-align:right;font-size:8pt;color:#cbd5e1"><strong>No. WO:</strong> ${woNo(pi)}<br><strong>Tgl Cetak:</strong> ${tglID("tglc")}</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;background:#f8fafc;border:1px solid #e2e8f0;padding:8px;border-radius:6px;font-size:8.5pt;margin-bottom:12px">
+      <div><span style="color:#64748b;font-size:7.5pt;display:block">TANGGAL SELESAI</span><strong>${tg}</strong></div>
+      <div><span style="color:#64748b;font-size:7.5pt;display:block">JAM SELESAI KEGIATAN</span><strong>${esc(endTimes[pi]||"-")}</strong></div>
+      <div><span style="color:#64748b;font-size:7.5pt;display:block">LOKASI / UNIT</span><strong>${lok}</strong></div>
+      <div><span style="color:#64748b;font-size:7.5pt;display:block">PETUGAS</span><strong>${p}</strong></div>
+      <div><span style="color:#64748b;font-size:7.5pt;display:block">JUMLAH KEGIATAN</span><strong>${r.length}</strong></div>
+    </div>
+    <div class="h3">Rincian Kegiatan Pemeliharaan</div>
+    <table class="pdf-table"><thead><tr><th style="width:30px">No</th><th>Uraian Kegiatan</th><th style="width:95px">Jenis</th><th style="width:60px;text-align:center">Status</th><th style="width:100px">Tgl Pelaksanaan</th></tr></thead><tbody>
+    ${r.map((t,k)=>`<tr><td>${k+1}</td><td>${esc(t.name)}</td><td>${t.type}</td><td style="text-align:center;font-size:11pt">${t.done?"☑":"☐"}</td><td>${fmtActivityDateTime(t.date||"")}</td></tr>`).join("")}
+    </tbody></table>
+    <div class="h3">Catatan Khusus / Rekomendasi</div>
+    <div style="background:#f8fafc;border:1px solid #cbd5e1;padding:8px;border-radius:4px;font-size:8.5pt;min-height:40px">&nbsp;</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:auto;padding-top:24px;font-size:8.5pt;break-inside:avoid">
+      <div style="border:1px solid #cbd5e1;border-radius:4px;padding:8px;text-align:center"><p style="margin:0 0 4px;font-weight:700">Dilaksanakan Oleh:<br>Teknisi Elban</p><div style="height:48px;border-bottom:1px dashed #94a3b8;margin-bottom:4px"></div><p style="margin:0;color:#475569">( ${p} )</p></div>
+      <div style="border:1px solid #cbd5e1;border-radius:4px;padding:8px;text-align:center"><p style="margin:0 0 4px;font-weight:700">Disetujui Oleh:<br>Supervisor / Kepala Unit ELBAN</p><div style="height:48px;border-bottom:1px dashed #94a3b8;margin-bottom:4px"></div><p style="margin:0;color:#475569">( ................................ )</p></div>
+    </div></div>`;
+  }).join("");
+}
+async function exportPDF(){
+  const el=$("docs"),b=$("pdfbtn");
+  if(typeof html2pdf==="undefined"){alert("Fitur PDF belum siap. Periksa koneksi internet lalu muat ulang halaman.");return}
+  doc();
+  const old=b.innerHTML;b.disabled=true;b.innerHTML="Menyiapkan PDF...";
+  const wrap=el.parentElement;wrap.style.overflow="visible";window.scrollTo(0,0);
+  el.classList.add("pdf-export-mode");
+  const name="Work_Order_ELBAN_"+new Date().toISOString().slice(0,10)+".pdf";
+  try{
+    const w=html2pdf().set({margin:0,filename:name,image:{type:"jpeg",quality:.98},html2canvas:{scale:2,useCORS:true,backgroundColor:"#ffffff"},jsPDF:{unit:"mm",format:"a4",orientation:"portrait"},pagebreak:{mode:["css"]}}).from(el);
+    let dl=null;
+    try{dl=window.claude?await window.claude.use("downloads"):null}catch(e){}
+    if(dl){const blob=await w.outputPdf("blob");await dl.save({filename:name,data:blob})}
+    else{await w.save()}
+  }catch(e){if(!e||e.code!=="declined")alert("Gagal membuat PDF: "+((e&&e.message)||e))}
+  el.classList.remove("pdf-export-mode");wrap.style.overflow="";b.disabled=false;b.innerHTML=old;
+}
+tab("data");render();
+</script>
+</body>
+</html>
