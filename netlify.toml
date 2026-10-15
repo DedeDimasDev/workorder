@@ -1,0 +1,9 @@
+[build]
+  base = "wo"
+  publish = "."
+
+# The site has no index.html, so serve the work order page at the root URL
+[[redirects]]
+  from = "/"
+  to = "/Work%20Order%20ELBAN.html"
+  status = 200
